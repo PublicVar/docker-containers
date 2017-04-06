@@ -1,0 +1,24 @@
+version: '2'
+services:
+  dataVolumes:
+    image: debian
+    container_name: dataVolumes
+    command: bash /usr/local/bin/forever.sh
+    volumes:
+      # map my www directory
+      - F:\Dev\Node:/app
+      # map directory to save mysql databses
+      - ~/ContainerVolumes/databases/mysql:/var/lib/mysql
+      - ./forever.sh:/usr/local/bin/forever.sh
+
+  node:
+    #php version 5.4
+    build: .
+    image: nodeapp
+    container_name: nodeapp
+    #links:
+    #  - mysqlServer:db
+    volumes_from:
+      - dataVolumes
+    ports:
+      - 8082:80

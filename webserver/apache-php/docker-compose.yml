@@ -1,0 +1,46 @@
+version: '2'
+services:
+  dataVolumes:
+    image: debian
+    container_name: dataVolumes
+    command: bash /usr/local/bin/forever.sh
+    volumes:
+      # map directory to save mysql databses
+      # Do not forget to change below to suit your directory.
+      - ./forever.sh:/usr/local/bin/forever.sh
+      # Directory to persist permanently the databases
+      - F:\Docker\Data\Databases\Mysql:/var/lib/mysql
+      # Apache www directory
+      - F:\Dev\Php:/var/www/html
+
+  mysqlServer:
+    image: mysql
+    container_name: mysqlServer
+    ports:
+     # I already have mysql install on my computer so I need to use another port than 3306
+      - 3307:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    volumes_from:
+      - dataVolumes
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    links:
+      - mysqlServer:db
+    ports:
+      - 8081:80
+
+  webServer:
+    # You can change version of php : https://hub.docker.com/r/actency/docker-apache-php/
+    image: actency/docker-apache-php
+    container_name: webServer
+    # Set up some webhost
+    environment:
+      - SERVERNAME=playground.dev
+      - DOCUMENTROOT=playground
+    volumes_from:
+      - dataVolumes
+    ports:
+      - 8082:80
