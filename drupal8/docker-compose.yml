@@ -1,0 +1,52 @@
+version: '2'
+
+services:
+  data:
+    image: debian
+    container_name: dataVolumes
+    command: bash /usr/local/bin/forever.sh
+    volumes:
+      # map directory to save mysql databses
+      # Do not forget to change below to suit your directory.
+      # It's only keeping data
+      # if the mysqlServer container below use this dataVolumes
+      - F:/Docker/Data/Databases/Mysql/Drupal/Sandbox:/var/lib/mysql
+      - F:/Dev/Php/Drupal/Sandbox:/var/www/html
+      - ./forever.sh:/usr/local/bin/forever.sh
+
+  drupal:
+    container_name: drupal
+    image: drupal:8.3-apache
+    ports:
+      - 8082:80
+    volumes_from:
+      - data
+    links:
+      - mysql
+
+  #not meant to be executed when docker-compose up
+  #for use drush :
+  #docker-compose run drush cr
+  drush:
+    image: drush/drush:8
+    container_name: drush
+    volumes_from:
+      - data
+    links:
+      - mysql
+    entrypoint:
+      - drush
+      - "--root=/var/www/html"
+
+  #Connect to mysql as user drupal (in this case)
+  #docker exec -it mysql mysql -u drupal -p
+  mysql:
+    container_name: sandbox_mysql
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: drupal
+      MYSQL_PASSWORD: 123456
+      MYSQL_DATABASE: drupal_sandbox
+    volumes_from:
+      - data
